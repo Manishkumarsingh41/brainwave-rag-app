@@ -1,6 +1,6 @@
 streamlit
 openai
-langchain
+langchain==0.1.14
 faiss-cpu
 python-dotenv
 tiktoken
