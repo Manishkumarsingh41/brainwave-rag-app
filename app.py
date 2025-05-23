@@ -1,9 +1,6 @@
-# app.py
 import streamlit as st
 from langchain.document_loaders import (
     PyPDFLoader,
-    UnstructuredURLLoader,
-    UnstructuredWordDocumentLoader,
     TextLoader,
     CSVLoader,
     JSONLoader,
@@ -17,57 +14,29 @@ import tempfile
 import os
 import base64
 
-# --- App Title and Config ---
+# --- App Config ---
 st.set_page_config(page_title="BrainWave RAG", layout="wide")
 st.markdown(
     """
     <h1 style='text-align: center; color: #4B8BBE;'>🧠 BrainWave RAG Assistant</h1>
-    <p style='text-align: center; color: grey;'>Upload documents, URLs, or code files and ask smart questions</p>
+    <p style='text-align: center; color: grey;'>Upload documents or code files and ask smart questions</p>
     """,
     unsafe_allow_html=True,
 )
 
-# --- Sidebar: User OpenAI API Key input ---
-user_openai_key = st.sidebar.text_input(
-    "🔑 Enter your OpenAI API Key",
-    type="password",
-    placeholder="sk-...",
-    help="Your API key is only used locally and not stored",
-)
+# --- API Key from Secrets ---
+user_openai_key = st.secrets["OPENAI_API_KEY"]
 
-if not user_openai_key:
-    st.sidebar.warning("Please enter your OpenAI API Key to use this app.")
-    st.stop()
-
-# --- Sidebar Input ---
-st.sidebar.header("📂 Upload or Paste URLs")
-
+# --- Sidebar File Upload ---
+st.sidebar.header("📂 Upload Files")
 uploaded_files = st.sidebar.file_uploader(
     "Upload documents or code files:",
-    type=[
-        "pdf",
-        "docx",
-        "txt",
-        "json",
-        "csv",
-        "py",
-        "js",
-        "java",
-        "cpp",
-        "c",
-        "html",
-        "css",
-        "pptx",
-        "xlsx",
-    ],
+    type=["pdf", "docx", "txt", "json", "csv", "py", "js", "java", "cpp", "c", "html", "css"],
     accept_multiple_files=True,
 )
-
-url_input = st.sidebar.text_area("Paste URLs (one per line):")
-
 process_button = st.sidebar.button("🚀 Upload & Process")
 
-# --- Session State Initialization ---
+# --- Session State ---
 if "vector_store" not in st.session_state:
     st.session_state.vector_store = None
 if "all_text" not in st.session_state:
@@ -87,18 +56,12 @@ if process_button:
         try:
             if suffix == "pdf":
                 loader = PyPDFLoader(tmp_path)
-            elif suffix == "docx":
-                loader = UnstructuredWordDocumentLoader(tmp_path)
-            elif suffix == "txt":
+            elif suffix in ["docx", "txt", "py", "js", "java", "cpp", "c", "html", "css"]:
                 loader = TextLoader(tmp_path)
             elif suffix == "csv":
                 loader = CSVLoader(tmp_path)
             elif suffix == "json":
                 loader = JSONLoader(tmp_path)
-            elif suffix in ["py", "js", "java", "cpp", "c", "html", "css"]:
-                loader = TextLoader(tmp_path)
-            elif suffix in ["pptx", "xlsx"]:
-                loader = TextLoader(tmp_path)
             else:
                 st.warning(f"Unsupported file type: {suffix}")
                 continue
@@ -111,15 +74,7 @@ if process_button:
         except Exception as e:
             st.error(f"Error loading {file.name}: {str(e)}")
 
-    urls = [url.strip() for url in url_input.splitlines() if url.strip() != ""]
-    if urls:
-        url_loader = UnstructuredURLLoader(urls=urls)
-        url_docs = url_loader.load()
-        for doc in url_docs:
-            st.session_state.all_text += doc.page_content + "\n"
-        loaders.append(url_docs)
-
-    # Split documents, embed, and build vector store using user's API key
+    # Split, Embed, Store
     splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=200)
     documents = [doc for docs in loaders for doc in docs]
     split_docs = splitter.split_documents(documents)
@@ -147,10 +102,12 @@ Questions:
         response = llm.predict(prompt)
         st.session_state.suggested_questions = response
 
+# --- Show Suggested Questions ---
 if "suggested_questions" in st.session_state:
     st.markdown("### 💡 Suggested Questions")
     st.markdown(st.session_state.suggested_questions)
 
+# --- Q&A Interface ---
 if st.session_state.vector_store:
     st.markdown("---")
     st.markdown("### 💬 Ask a Question")
@@ -179,4 +136,4 @@ if st.session_state.vector_store:
         """
         st.markdown(copy_code, unsafe_allow_html=True)
 else:
-    st.info("⬅️ Upload documents or enter URLs and click 'Upload & Process' to begin.")
+    st.info("⬅️ Upload documents and click 'Upload & Process' to begin.")
