@@ -2,5 +2,8 @@ streamlit
 openai
 langchain==0.1.14
 faiss-cpu
-python-dotenv
 tiktoken
+python-dotenv
+unstructured
+beautifulsoup4
+html5lib
