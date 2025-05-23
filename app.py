@@ -11,6 +11,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
 import tempfile
+import os
 import base64
 
 # --- App Config ---
@@ -73,14 +74,10 @@ if process_button:
         except Exception as e:
             st.error(f"Error loading {file.name}: {str(e)}")
 
+    # Split, Embed, Store
     splitter = RecursiveCharacterTextSplitter(chunk_size=5000, chunk_overlap=200)
     documents = [doc for docs in loaders for doc in docs]
     split_docs = splitter.split_documents(documents)
-
-    # ✅ FIX: Check for empty documents
-    if not split_docs:
-        st.error("❗ No valid text extracted. Please upload readable files (not scanned images, etc).")
-        st.stop()
 
     embeddings = OpenAIEmbeddings(openai_api_key=user_openai_key)
     vectordb = FAISS.from_documents(split_docs, embeddings)
