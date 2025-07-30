@@ -6,6 +6,10 @@ An intelligent **Retrieval-Augmented Generation (RAG)** assistant built with **S
 
 ---
 
+🔗 **[🚀 Live Demo Here](https://brainwaverag.streamlit.app/)** (no setup needed!)
+
+---
+
 ## 🔍 Features
 
 - 🔐 **Secure API key input** (local-only usage)
@@ -43,11 +47,8 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-### 4. Start exploring!
-
-- Enter your **OpenAI API Key**
-- Upload files or paste URLs
-- Ask questions and get smart, contextual answers
+### OR Just Use the Web Version  
+🔗 **[Click here for the live app →](https://brainwaverag.streamlit.app/)**
 
 ---
 
@@ -61,7 +62,7 @@ streamlit run app.py
 
 ## 📷 UI Preview
 
-> _Coming Soon: GIF or screenshots_
+> _Coming Soon: GIF or screenshots of the app in action_
 
 ---
 
